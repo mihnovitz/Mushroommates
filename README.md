@@ -3,6 +3,6 @@ To forum ma na celu budowanie największej, otwartej bazy wiedzy o grzybach. Nas
 
 <img width="907" height="613" alt="Screenshot From 2025-10-18 13-44-24" src="https://github.com/user-attachments/assets/9f92ab1d-fa0f-4d4e-a208-782abaafb39c" />
 
-- Backend technology: .NET 10
-- Frontend technology: Angular 20
+- Backend technology: Go
+- Frontend technology: React
 - Database engine: PostgreSQL
