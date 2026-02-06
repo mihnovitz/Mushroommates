@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nowy wątek - Forum Grzybowe</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container">
+    <h1>Nowy wątek</h1>
+    <form id="thread-form">
+        <input type="text" id="title" placeholder="Tytuł wątku" required>
+        <textarea id="content" placeholder="Treść pierwszego posta" rows="6" required></textarea>
+        <button type="submit">Utwórz wątek</button>
+        <button type="button" onclick="window.location.href='/'">Anuluj</button>
+    </form>
+</div>
+<script src="js/new-thread.js"></script>
+</body>
+</html>

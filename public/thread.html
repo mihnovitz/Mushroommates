@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wątek - Forum Grzybowe</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container">
+    <button onclick="window.location.href='/'" style="margin-bottom: 20px;">← Powrót do forum</button>
+    <div id="thread-content"></div>
+    <div id="add-reply-section" style="display: none;">
+        <h3>Dodaj odpowiedź</h3>
+        <form id="reply-form">
+            <textarea id="reply-content" placeholder="Twoja odpowiedź" rows="4" required></textarea>
+            <button type="submit">Dodaj odpowiedź</button>
+        </form>
+    </div>
+</div>
+<script src="js/thread.js"></script>
+</body>
+</html>

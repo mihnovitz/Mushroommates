@@ -7,9 +7,10 @@ function checkAuth() {
         document.getElementById('login-btn').style.display = 'none';
         document.getElementById('register-btn').style.display = 'none';
         document.getElementById('logout-btn').style.display = 'block';
-        document.getElementById('add-post-section').style.display = 'block';
+        document.getElementById('new-thread-btn').style.display = 'block'; // <- DODAJ TĘ LINIĘ
     }
 }
+
 
 // Wylogowanie
 document.getElementById('logout-btn')?.addEventListener('click', () => {
@@ -24,44 +25,26 @@ async function loadPosts() {
         const posts = await response.json();
 
         const container = document.getElementById('posts-container');
+
+        if (!posts || posts.length === 0) {
+            container.innerHTML = '<p style="color: #95a5a6; text-align: center; padding: 40px;">Brak postów. Dodaj pierwszy!</p>';
+            return;
+        }
+
         container.innerHTML = posts.map(post => `
-            <div class="post">
+            <div class="post" onclick="window.location.href='/thread.html?id=${post.id}'" style="cursor: pointer;">
                 <h3>${post.title}</h3>
                 <p>${post.content}</p>
-                <small>Autor: ${post.author.name} | ${new Date(post.createdAt).toLocaleDateString()}</small>
+                <small>Autor: ${post.author?.name || 'Nieznany'} | ${new Date(post.createdAt).toLocaleDateString()}</small>
             </div>
         `).join('');
     } catch (error) {
         console.error('Błąd ładowania postów:', error);
+        document.getElementById('posts-container').innerHTML = '<p style="color: #e74c3c;">Błąd ładowania postów</p>';
     }
 }
 
-// Dodaj nowy post
-document.getElementById('add-post-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
 
-    const token = localStorage.getItem('token');
-    const title = document.getElementById('post-title').value;
-    const content = document.getElementById('post-content').value;
-
-    try {
-        const response = await fetch(`${API_URL}/forum/posts`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ title, content })
-        });
-
-        if (response.ok) {
-            document.getElementById('add-post-form').reset();
-            loadPosts();
-        }
-    } catch (error) {
-        console.error('Błąd dodawania posta:', error);
-    }
-});
 
 // Przekierowanie do logowania
 document.getElementById('login-btn')?.addEventListener('click', () => {

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mushroommates - Forum grzybiarzy</title>
     <link rel="stylesheet" href="/css/style.css">
+
 </head>
 <body>
 <nav>
@@ -24,14 +25,11 @@
     </section>
 
     <section id="forum-posts">
-        <h2>Forum grzybiarzy</h2>
-        <div id="add-post-section" style="display:none;">
-            <h3>Dodaj nowy post</h3>
-            <form id="add-post-form">
-                <input type="text" id="post-title" placeholder="Tytuł" required>
-                <textarea id="post-content" placeholder="Treść" rows="4" required></textarea>
-                <button type="submit">Dodaj post</button>
-            </form>
+        <div class="section-header">
+            <h2>Forum grzybiarzy</h2>
+            <button id="new-thread-btn" style="display:none;" onclick="window.location.href='/new-thread.html'">
+                ➕ Nowy wątek
+            </button>
         </div>
         <div id="posts-container"></div>
     </section>
