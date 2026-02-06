@@ -3,21 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wątek - Forum Grzybowe</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="description" content="Wątek na forum grzybiarzy">
+    <title>Wątek 💬 - Mushroommates</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<div class="container">
-    <button onclick="window.location.href='/'" style="margin-bottom: 20px;">← Powrót do forum</button>
-    <div id="thread-content"></div>
-    <div id="add-reply-section" style="display: none;">
-        <h3>Dodaj odpowiedź</h3>
-        <form id="reply-form">
-            <textarea id="reply-content" placeholder="Twoja odpowiedź" rows="4" required></textarea>
-            <button type="submit">Dodaj odpowiedź</button>
-        </form>
-    </div>
-</div>
-<script src="js/thread.js"></script>
+    <!-- Nawigacja -->
+    <nav>
+        <h1>Mushroommates</h1>
+        <div id="auth-buttons">
+            <button onclick="window.location.href='/index.html'">← Powrót do forum</button>
+            <button id="logout-btn" style="display:none;">Wyloguj</button>
+        </div>
+    </nav>
+
+    <!-- Główna treść -->
+    <main>
+        <div class="container">
+            <!-- Treść wątku -->
+            <div id="thread-content" class="slide-up"></div>
+
+            <!-- Formularz odpowiedzi -->
+            <div id="add-reply-section" style="display: none;" class="fade-in">
+                <h3>💬 Dodaj odpowiedź</h3>
+                <form id="reply-form">
+                    <textarea id="reply-content" placeholder="Twoja odpowiedź..." rows="5" required minlength="1"></textarea>
+                    <button type="submit">Dodaj odpowiedź</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/thread.js"></script>
 </body>
 </html>

@@ -3,19 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nowy wątek - Forum Grzybowe</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta name="description" content="Utwórz nowy wątek na forum grzybiarzy">
+    <title>Nowy Wątek 📝 - Mushroommates</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<div class="container">
-    <h1>Nowy wątek</h1>
-    <form id="thread-form">
-        <input type="text" id="title" placeholder="Tytuł wątku" required>
-        <textarea id="content" placeholder="Treść pierwszego posta" rows="6" required></textarea>
-        <button type="submit">Utwórz wątek</button>
-        <button type="button" onclick="window.location.href='/'">Anuluj</button>
-    </form>
-</div>
-<script src="js/new-thread.js"></script>
+    <!-- Nawigacja -->
+    <nav>
+        <h1>Mushroommates</h1>
+        <div id="auth-buttons">
+            <button onclick="window.location.href='/index.html'">← Powrót</button>
+            <button id="logout-btn" style="display:none;">Wyloguj</button>
+        </div>
+    </nav>
+
+    <!-- Główna treść -->
+    <main>
+        <div class="container">
+            <section>
+                <h2>📝 Utwórz nowy wątek</h2>
+                <form id="thread-form">
+                    <input type="text" id="title" placeholder="Tytuł wątku (minimum 5 znaków) *" required minlength="5">
+                    <textarea id="content" placeholder="Treść wątku (minimum 10 znaków) *" rows="8" required minlength="10"></textarea>
+                    <small style="color: #666; margin-bottom: 10px; display: block;">* - pole wymagane</small>
+                    <button type="submit">Utwórz wątek</button>
+                    <button type="button" onclick="window.location.href='/'" style="background: #666; margin-top: 10px;">Anuluj</button>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <script src="/js/new-thread.js"></script>
 </body>
 </html>
