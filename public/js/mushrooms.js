@@ -24,22 +24,26 @@ document.getElementById('add-mushroom')?.addEventListener('submit', async (e) =>
     if (!checkAuth()) return;
 
     const token = localStorage.getItem('token');
-    const formData = {
-        name: document.getElementById('mushroom-name').value,
-        species: document.getElementById('mushroom-species').value,
-        location: document.getElementById('mushroom-location').value,
-        latitude: parseFloat(document.getElementById('mushroom-lat').value),
-        longitude: parseFloat(document.getElementById('mushroom-lng').value)
-    };
+    const formData = new FormData();
+
+    formData.append('name', document.getElementById('mushroom-name').value);
+    formData.append('species', document.getElementById('mushroom-species').value);
+    formData.append('location', document.getElementById('mushroom-location').value);
+    formData.append('latitude', document.getElementById('mushroom-lat').value);
+    formData.append('longitude', document.getElementById('mushroom-lng').value);
+
+    const photoFile = document.getElementById('mushroom-photo').files[0];
+    if (photoFile) {
+        formData.append('image', photoFile);
+    }
 
     try {
         const response = await fetch(`${API_URL}/mushrooms`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(formData)
+            body: formData
         });
 
         if (response.ok) {
@@ -47,7 +51,8 @@ document.getElementById('add-mushroom')?.addEventListener('submit', async (e) =>
             document.getElementById('add-mushroom').reset();
             loadMushrooms();
         } else {
-            alert('Błąd dodawania grzyba');
+            const error = await response.json();
+            alert('Błąd dodawania grzyba: ' + (error.error || 'Nieznany błąd'));
         }
     } catch (error) {
         console.error('Błąd:', error);
@@ -64,10 +69,12 @@ async function loadMushrooms() {
         const container = document.getElementById('mushrooms-container');
         container.innerHTML = mushrooms.map(m => `
             <div class="mushroom-card">
+                ${m.photo ? `<img src="${m.photo}" alt="${m.name}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">` : ''}
                 <h3>${m.name}</h3>
                 <p><strong>Gatunek:</strong> ${m.species || 'Nieznany'}</p>
                 <p><strong>Lokalizacja:</strong> ${m.location}</p>
                 <p><strong>Współrzędne:</strong> ${m.latitude}, ${m.longitude}</p>
+                <p><strong>Znalazł:</strong> ${m.user?.name || 'Nieznany'}</p>
                 <small>Dodano: ${new Date(m.createdAt).toLocaleString()}</small>
             </div>
         `).join('');

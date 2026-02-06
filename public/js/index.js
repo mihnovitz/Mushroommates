@@ -35,7 +35,7 @@ async function loadPosts() {
             <div class="post" onclick="window.location.href='/thread.html?id=${post.id}'" style="cursor: pointer;">
                 <h3>${post.title}</h3>
                 <p>${post.content}</p>
-                <small>Autor: ${post.author?.name || 'Nieznany'} | ${new Date(post.createdAt).toLocaleDateString()}</small>
+                <small>Autor: ${post.user?.name || 'Nieznany'} | ${new Date(post.createdAt).toLocaleDateString()}</small>
             </div>
         `).join('');
     } catch (error) {

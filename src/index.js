@@ -4,6 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import pkg from '@prisma/client';
 import { hashPassword, verifyPassword, generateToken, verifyToken } from './auth.js';
+import multer from 'multer';
+import path from 'path';
 
 const { PrismaClient } = pkg;
 
@@ -12,6 +14,31 @@ dotenv.config();
 const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Konfiguracja multer do uploadu zdjęć
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|webp|gif/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+
+        if (mimetype && extname) {
+            return cb(null, true);
+        }
+        cb(new Error('Tylko pliki graficzne (JPEG, PNG, WEBP, GIF)'));
+    }
+});
 
 // Middleware
 app.use(cors());
@@ -63,21 +90,27 @@ app.get('/api/mushrooms', async (req, res) => {
 });
 
 // Dodanie grzyba (wymaga autoryzacji)
-app.post('/api/mushrooms', authMiddleware, async (req, res) => {
-    const { name, species, location, latitude, longitude, photo } = req.body;
+app.post('/api/mushrooms', authMiddleware, upload.single('image'), async (req, res) => {
+    try {
+        const { name, species, location, latitude, longitude } = req.body;
+        const photo = req.file ? `/uploads/${req.file.filename}` : null;
 
-    const mushroom = await prisma.mushroom.create({
-        data: {
-            name,
-            species,
-            location,
-            latitude,
-            longitude,
-            photo,
-            userId: req.userId
-        }
-    });
-    res.json(mushroom);
+        const mushroom = await prisma.mushroom.create({
+            data: {
+                name,
+                species,
+                location,
+                latitude: latitude ? parseFloat(latitude) : null,
+                longitude: longitude ? parseFloat(longitude) : null,
+                photo,
+                userId: req.userId
+            }
+        });
+        res.json(mushroom);
+    } catch (error) {
+        console.error('Błąd dodawania grzyba:', error);
+        res.status(500).json({ error: 'Błąd dodawania grzyba' });
+    }
 });
 
 // Edycja grzyba (tylko własne)

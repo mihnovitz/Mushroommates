@@ -8,17 +8,31 @@ async function loadThread() {
         const response = await fetch(`${API_URL}/forum/posts/${threadId}`);
         const post = await response.json();
 
+        let commentsHtml = '';
+        if (post.comments && post.comments.length > 0) {
+            commentsHtml = post.comments.map(comment => `
+                <div class="post" style="margin-left: 20px; border-left: 3px solid #3498db;">
+                    <p>${comment.content}</p>
+                    <small>Autor: ${comment.user?.name || 'Nieznany'} | ${new Date(comment.createdAt).toLocaleDateString()}</small>
+                </div>
+            `).join('');
+        } else {
+            commentsHtml = '<p style="color: #95a5a6; margin-left: 20px;">Brak odpowiedzi. Dodaj pierwszą!</p>';
+        }
+
         document.getElementById('thread-content').innerHTML = `
             <div class="post">
                 <h2>${post.title}</h2>
                 <p>${post.content}</p>
-                <small>Autor: ${post.author?.name || 'Nieznany'} | ${new Date(post.createdAt).toLocaleDateString()}</small>
-            </div><h3 style="margin-top: 30px;">Odpowiedzi</h3>
-            <div id="replies-container"></div>
+                <small>Autor: ${post.user?.name || 'Nieznany'} | ${new Date(post.createdAt).toLocaleDateString()}</small>
+            </div>
+            <h3 style="margin-top: 30px;">Odpowiedzi</h3>
+            <div id="replies-container">${commentsHtml}</div>
         `;
 
         const token = localStorage.getItem('token');
-        if (token) {document.getElementById('add-reply-section').style.display = 'block';
+        if (token) {
+            document.getElementById('add-reply-section').style.display = 'block';
         }
     } catch (error) {
         console.error('Błąd ładowania wątku:', error);
@@ -33,7 +47,7 @@ document.getElementById('reply-form')?.addEventListener('submit', async (e) => {
     const content = document.getElementById('reply-content').value;
 
     try {
-        const response = await fetch(`${API_URL}/forum/posts/${threadId}/replies`, {
+        const response = await fetch(`${API_URL}/forum/posts/${threadId}/comments`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -45,9 +59,12 @@ document.getElementById('reply-form')?.addEventListener('submit', async (e) => {
         if (response.ok) {
             document.getElementById('reply-form').reset();
             loadThread();
+        } else {
+            alert('Błąd dodawania odpowiedzi');
         }
     } catch (error) {
         console.error('Błąd dodawania odpowiedzi:', error);
+        alert('Błąd połączenia z serwerem');
     }
 });
 
