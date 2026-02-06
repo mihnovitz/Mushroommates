@@ -22,9 +22,12 @@ document.getElementById('logout-btn')?.addEventListener('click', () => {
 async function loadPosts() {
     try {
         const response = await fetch(`${API_URL}/forum/posts`);
-        const posts = await response.json();
+        const data = await response.json();
+
+        const posts = data.success ? data.data : data; // Obsługa obu formatów
 
         const container = document.getElementById('posts-container');
+        if (!container) return;
 
         if (!posts || posts.length === 0) {
             container.innerHTML = '<p style="color: #95a5a6; text-align: center; padding: 40px;">Brak postów. Dodaj pierwszy!</p>';
@@ -40,7 +43,10 @@ async function loadPosts() {
         `).join('');
     } catch (error) {
         console.error('Błąd ładowania postów:', error);
-        document.getElementById('posts-container').innerHTML = '<p style="color: #e74c3c;">Błąd ładowania postów</p>';
+        const container = document.getElementById('posts-container');
+        if (container) {
+            container.innerHTML = '<p style="color: #e74c3c;">Błąd ładowania postów</p>';
+        }
     }
 }
 

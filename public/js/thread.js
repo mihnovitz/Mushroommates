@@ -6,7 +6,9 @@ const threadId = urlParams.get('id');
 async function loadThread() {
     try {
         const response = await fetch(`${API_URL}/forum/posts/${threadId}`);
-        const post = await response.json();
+        const data = await response.json();
+
+        const post = data.success ? data.data : data; // Obsługa obu formatów
 
         let commentsHtml = '';
         if (post.comments && post.comments.length > 0) {
@@ -20,23 +22,30 @@ async function loadThread() {
             commentsHtml = '<p style="color: #95a5a6; margin-left: 20px;">Brak odpowiedzi. Dodaj pierwszą!</p>';
         }
 
-        document.getElementById('thread-content').innerHTML = `
-            <div class="post">
-                <h2>${post.title}</h2>
-                <p>${post.content}</p>
-                <small>Autor: ${post.user?.name || 'Nieznany'} | ${new Date(post.createdAt).toLocaleDateString()}</small>
-            </div>
-            <h3 style="margin-top: 30px;">Odpowiedzi</h3>
-            <div id="replies-container">${commentsHtml}</div>
-        `;
+        const threadContent = document.getElementById('thread-content');
+        if (threadContent) {
+            threadContent.innerHTML = `
+                <div class="post">
+                    <h2>${post.title}</h2>
+                    <p>${post.content}</p>
+                    <small>Autor: ${post.user?.name || 'Nieznany'} | ${new Date(post.createdAt).toLocaleDateString()}</small>
+                </div>
+                <h3 style="margin-top: 30px;">Odpowiedzi</h3>
+                <div id="replies-container">${commentsHtml}</div>
+            `;
+        }
 
         const token = localStorage.getItem('token');
-        if (token) {
-            document.getElementById('add-reply-section').style.display = 'block';
+        const replySection = document.getElementById('add-reply-section');
+        if (token && replySection) {
+            replySection.style.display = 'block';
         }
     } catch (error) {
         console.error('Błąd ładowania wątku:', error);
-        document.getElementById('thread-content').innerHTML = '<p style="color: #e74c3c;">Błąd ładowania wątku</p>';
+        const threadContent = document.getElementById('thread-content');
+        if (threadContent) {
+            threadContent.innerHTML = '<p style="color: #e74c3c;">Błąd ładowania wątku</p>';
+        }
     }
 }
 
@@ -44,7 +53,12 @@ document.getElementById('reply-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const token = localStorage.getItem('token');
-    const content = document.getElementById('reply-content').value;
+    const content = document.getElementById('reply-content')?.value;
+
+    if (!content || content.length < 1) {
+        alert('Komentarz nie może być pusty');
+        return;
+    }
 
     try {
         const response = await fetch(`${API_URL}/forum/posts/${threadId}/comments`, {
@@ -56,11 +70,13 @@ document.getElementById('reply-form')?.addEventListener('submit', async (e) => {
             body: JSON.stringify({ content })
         });
 
-        if (response.ok) {
+        const data = await response.json();
+
+        if (response.ok && data.success) {
             document.getElementById('reply-form').reset();
             loadThread();
         } else {
-            alert('Błąd dodawania odpowiedzi');
+            alert('Błąd dodawania odpowiedzi: ' + (data.error || data.message || 'Nieznany błąd'));
         }
     } catch (error) {
         console.error('Błąd dodawania odpowiedzi:', error);

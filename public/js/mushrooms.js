@@ -46,13 +46,14 @@ document.getElementById('add-mushroom')?.addEventListener('submit', async (e) =>
             body: formData
         });
 
-        if (response.ok) {
+        const data = await response.json();
+
+        if (response.ok && data.success) {
             alert('Grzyb dodany!');
             document.getElementById('add-mushroom').reset();
             loadMushrooms();
         } else {
-            const error = await response.json();
-            alert('Błąd dodawania grzyba: ' + (error.error || 'Nieznany błąd'));
+            alert('Błąd dodawania grzyba: ' + (data.error || data.message || 'Nieznany błąd'));
         }
     } catch (error) {
         console.error('Błąd:', error);
@@ -64,9 +65,18 @@ document.getElementById('add-mushroom')?.addEventListener('submit', async (e) =>
 async function loadMushrooms() {
     try {
         const response = await fetch(`${API_URL}/mushrooms`);
-        const mushrooms = await response.json();
+        const data = await response.json();
+
+        const mushrooms = data.success ? data.data : data; // Obsługa obu formatów
 
         const container = document.getElementById('mushrooms-container');
+        if (!container) return;
+
+        if (!mushrooms || mushrooms.length === 0) {
+            container.innerHTML = '<p style="color: #95a5a6; text-align: center; padding: 40px;">Brak grzybów. Dodaj pierwszy!</p>';
+            return;
+        }
+
         container.innerHTML = mushrooms.map(m => `
             <div class="mushroom-card">
                 ${m.photo ? `<img src="${m.photo}" alt="${m.name}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">` : ''}
@@ -80,6 +90,10 @@ async function loadMushrooms() {
         `).join('');
     } catch (error) {
         console.error('Błąd ładowania grzybów:', error);
+        const container = document.getElementById('mushrooms-container');
+        if (container) {
+            container.innerHTML = '<p style="color: #e74c3c;">Błąd ładowania grzybów</p>';
+        }
     }
 }
 
