@@ -1,216 +1,73 @@
-import express from 'express';
-import authRoutes from './routes/auth.js';
-import cors from 'cors';
 import dotenv from 'dotenv';
-import pkg from '@prisma/client';
-import { hashPassword, verifyPassword, generateToken, verifyToken } from './auth.js';
-import multer from 'multer';
-import path from 'path';
+import app from './app.js';
+import logger from './utils/logger.js';
+import { getPrismaClient, disconnectDatabase } from './config/database.js';
 
-const { PrismaClient } = pkg;
-
+// Załaduj zmienne środowiskowe
 dotenv.config();
 
-const prisma = new PrismaClient();
-const app = express();
 const PORT = process.env.PORT || 3000;
+const prisma = getPrismaClient();
 
-// Konfiguracja multer do uploadu zdjęć
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({
-    storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png|webp|gif/;
-        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = allowedTypes.test(file.mimetype);
-
-        if (mimetype && extname) {
-            return cb(null, true);
-        }
-        cb(new Error('Tylko pliki graficzne (JPEG, PNG, WEBP, GIF)'));
-    }
-});
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
-
-// ROUTES
-app.use('/api/auth', authRoutes);
-
-// Middleware autoryzacji
-const authMiddleware = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'Unauthorized' });
-
+// Sprawdź połączenie z bazą danych
+async function checkDatabaseConnection() {
     try {
-        const { userId } = verifyToken(token);
-        req.userId = userId;
-        next();
-    } catch {
-        res.status(401).json({ error: 'Invalid token' });
-    }
-};
-
-// Publiczne endpointy
-app.get('/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Mushroommates API is running' });
-});
-
-// Chronione endpointy
-app.get('/users', authMiddleware, async (req, res) => {
-    const users = await prisma.user.findMany();
-    res.json(users);
-});
-
-// Publiczny endpoint
-app.get('/api/users-public', async (req, res) => {
-    const users = await prisma.user.findMany({
-        select: { id: true, name: true, email: true }
-    });
-    res.json(users);
-});
-
-// Pobranie wszystkich grzybów (publiczne)
-app.get('/api/mushrooms', async (req, res) => {
-    const mushrooms = await prisma.mushroom.findMany({
-        include: { user: { select: { id: true, name: true } } }
-    });
-    res.json(mushrooms);
-});
-
-// Dodanie grzyba (wymaga autoryzacji)
-app.post('/api/mushrooms', authMiddleware, upload.single('image'), async (req, res) => {
-    try {
-        const { name, species, location, latitude, longitude } = req.body;
-        const photo = req.file ? `/uploads/${req.file.filename}` : null;
-
-        const mushroom = await prisma.mushroom.create({
-            data: {
-                name,
-                species,
-                location,
-                latitude: latitude ? parseFloat(latitude) : null,
-                longitude: longitude ? parseFloat(longitude) : null,
-                photo,
-                userId: req.userId
-            }
-        });
-        res.json(mushroom);
+        await prisma.$connect();
+        logger.info('✅ Połączono z bazą danych PostgreSQL');
     } catch (error) {
-        console.error('Błąd dodawania grzyba:', error);
-        res.status(500).json({ error: 'Błąd dodawania grzyba' });
+        logger.error('❌ Błąd połączenia z bazą danych:', error);
+        process.exit(1);
     }
-});
+}
 
-// Edycja grzyba (tylko własne)
-app.put('/api/mushrooms/:id', authMiddleware, async (req, res) => {
-    const { id } = req.params;
-    const mushroom = await prisma.mushroom.findUnique({ where: { id: parseInt(id) } });
-
-    if (!mushroom || mushroom.userId !== req.userId) {
-        return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    const updated = await prisma.mushroom.update({
-        where: { id: parseInt(id) },
-        data: req.body
-    });
-    res.json(updated);
-});
-
-// Usunięcie grzyba (tylko własne)
-app.delete('/api/mushrooms/:id', authMiddleware, async (req, res) => {
-    const { id } = req.params;
-    const mushroom = await prisma.mushroom.findUnique({ where: { id: parseInt(id) } });
-
-    if (!mushroom || mushroom.userId !== req.userId) {
-        return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    await prisma.mushroom.delete({ where: { id: parseInt(id) } });
-    res.json({ message: 'Mushroom deleted' });
-});
-
-// FORUM - Pobierz wszystkie wątki (posty)
-app.get('/api/forum/posts', async (req, res) => {
+// Uruchom serwer
+async function startServer() {
     try {
-        const posts = await prisma.post.findMany({
-            include: {
-                user: { select: { id: true, name: true } },
-                comments: { select: { id: true } }
-            },
-            orderBy: { createdAt: 'desc' }
+        await checkDatabaseConnection();
+
+        const server = app.listen(PORT, () => {
+            logger.info(`🚀 Server running on http://localhost:${PORT}`);
+            logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
         });
-        res.json(posts);
+
+        // Graceful shutdown
+        const gracefulShutdown = async (signal) => {
+            logger.info(`\n${signal} received. Shutting down gracefully...`);
+
+            server.close(async () => {
+                logger.info('✅ HTTP server closed');
+
+                await disconnectDatabase();
+                logger.info('✅ Database connection closed');
+
+                process.exit(0);
+            });
+
+            // Force shutdown after 10 seconds
+            setTimeout(() => {
+                logger.error('❌ Forced shutdown after timeout');
+                process.exit(1);
+            }, 10000);
+        };
+
+        process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+        process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        logger.error('❌ Failed to start server:', error);
+        process.exit(1);
     }
+}
+
+// Obsługa nieobsłużonych błędów
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// Pobierz jeden wątek z komentarzami
-app.get('/api/forum/posts/:id', async (req, res) => {
-    try {
-        const post = await prisma.post.findUnique({
-            where: { id: parseInt(req.params.id) },
-            include: {
-                user: { select: { id: true, name: true } },
-                comments: {
-                    include: { user: { select: { id: true, name: true } } },
-                    orderBy: { createdAt: 'asc' }
-                }
-            }
-        });
-        res.json(post);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+process.on('uncaughtException', (error) => {
+    logger.error('Uncaught Exception:', error);
+    process.exit(1);
 });
 
-// Utwórz nowy wątek (wymaga logowania)
-app.post('/api/forum/posts', authMiddleware, async (req, res) => {
-    try {
-        const { title, content, imageUrl } = req.body;
-        const post = await prisma.post.create({
-            data: { title, content, imageUrl, userId: req.userId },
-            include: { user: { select: { id: true, name: true } } }
-        });
-        res.json(post);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Dodaj komentarz do wątku (wymaga logowania)
-app.post('/api/forum/posts/:id/comments', authMiddleware, async (req, res) => {
-    try {
-        const { content } = req.body;
-        const comment = await prisma.comment.create({
-            data: {
-                content,
-                postId: parseInt(req.params.id),
-                userId: req.userId
-            },
-            include: { user: { select: { id: true, name: true } } }
-        });
-        res.json(comment);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-
-
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+// Start
+startServer();
