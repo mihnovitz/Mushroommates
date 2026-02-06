@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum Grzybiarzy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2d5016 0%, #1a2f0a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            color: #2d5016;
+            font-size: 28px;
+        }
+
+        .btn {
+            background: #4a7c2c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #3a6222;
+        }
+
+        .btn-secondary {
+            background: #666;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        .new-post-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .new-post-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .posts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .post-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .post-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .post-title {
+            font-size: 20px;
+            color: #2d5016;
+            font-weight: bold;
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .post-content {
+            color: #333;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+
+        .post-image {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .comment-count {
+            background: #4a7c2c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            padding: 40px;
+        }
+
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🍄 Forum Grzybiarzy</h1>
+        <div>
+            <a href="index.html" class="btn btn-secondary">Mapa grzybów</a>
+            <button id="newPostBtn" class="btn">Nowy wątek</button>
+            <button id="logoutBtn" class="btn btn-secondary">Wyloguj</button>
+        </div>
+    </header>
+
+    <div id="error" class="error" style="display: none;"></div>
+
+    <!-- Formularz nowego wątku -->
+    <div id="newPostForm" class="new-post-form">
+        <h2>Utwórz nowy wątek</h2>
+        <form id="postForm">
+            <div class="form-group">
+                <label for="title">Tytuł *</label>
+                <input type="text" id="title" required placeholder="Np. Znalazłem rydze pod Warszawą!">
+            </div>
+            <div class="form-group">
+                <label for="content">Treść *</label>
+                <textarea id="content" required placeholder="Opisz swoje znalezisko..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="imageUrl">Link do zdjęcia (opcjonalnie)</label>
+                <input type="url" id="imageUrl" placeholder="https://example.com/zdjecie.jpg">
+            </div>
+            <button type="submit" class="btn">Opublikuj</button>
+            <button type="button" id="cancelBtn" class="btn btn-secondary">Anuluj</button>
+        </form>
+    </div>
+
+    <!-- Lista wątków -->
+    <div id="loading" class="loading">Ładowanie wątków...</div>
+    <div id="postsList" class="posts-list"></div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'login.html';
+    }
+
+    // Elementy DOM
+    const newPostBtn = document.getElementById('newPostBtn');
+    const newPostForm = document.getElementById('newPostForm');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const postForm = document.getElementById('postForm');
+    const postsList = document.getElementById('postsList');
+    const loading = document.getElementById('loading');
+    const errorDiv = document.getElementById('error');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Pokaż/ukryj formularz
+    newPostBtn.addEventListener('click', () => {
+        newPostForm.classList.add('active');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        newPostForm.classList.remove('active');
+        postForm.reset();
+    });
+
+    // Wylogowanie
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = 'login.html';
+    });
+
+    // Wyświetl błąd
+    function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    // Formatuj datę
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pl-PL', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // Pobierz wątki
+    async function loadPosts() {
+        try {
+            const response = await fetch('/api/forum/posts', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Błąd pobierania wątków');
+            }
+
+            const posts = await response.json();
+            loading.style.display = 'none';
+
+            if (posts.length === 0) {
+                postsList.innerHTML = '<div class="empty-state">Brak wątków. Utwórz pierwszy!</div>';
+                return;
+            }
+
+            postsList.innerHTML = posts.map(post => `
+                    <div class="post-card" onclick="openPost(${post.id})">
+                        <div class="post-header">
+                            <div>
+                                <div class="post-title">${escapeHtml(post.title)}</div>
+                                <div class="post-meta">
+                                    <span>👤 ${escapeHtml(post.user.name || 'Anonim')}</span>
+                                    <span>📅 ${formatDate(post.createdAt)}</span>
+                                    <span class="comment-count">💬 ${post.comments.length}</span>
+                                </div>
+                            </div></div>
+                        <div class="post-content">${escapeHtml(post.content).substring(0, 200)}${post.content.length > 200 ? '...' : ''}</div>
+                        ${post.imageUrl ? `<img src="${escapeHtml(post.imageUrl)}" class="post-image" alt="Zdjęcie">` : ''}
+                    </div>
+                `).join('');
+        } catch (error) {
+            loading.style.display = 'none';
+            showError(error.message);
+        }
+    }
+
+    // Utwórz nowy wątek
+    postForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const data = {
+            title: document.getElementById('title').value,
+            content: document.getElementById('content').value,
+            imageUrl: document.getElementById('imageUrl').value || null
+        };
+
+        try {
+            const response = await fetch('/api/forum/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                throw new Error('Błąd tworzenia wątku');
+            }
+
+            newPostForm.classList.remove('active');
+            postForm.reset();
+            await loadPosts();
+        } catch (error) {
+            showError(error.message);
+        }
+    });
+
+    // Otwórz szczegóły wątku
+    function openPost(postId) {
+        window.location.href = `forum-post.html?id=${postId}`;
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Załaduj wątki przy starcie
+    loadPosts();
+</script>
+</body>
+</html>

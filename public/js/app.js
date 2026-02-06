@@ -5,9 +5,6 @@ let token = localStorage.getItem('token');
 const loginBtn = document.getElementById('login-btn');
 const registerBtn = document.getElementById('register-btn');
 const logoutBtn = document.getElementById('logout-btn');
-const mushroomForm = document.getElementById('mushroom-form');
-const addMushroomForm = document.getElementById('add-mushroom');
-const mushroomsContainer = document.getElementById('mushrooms-container');
 
 // Sprawdź czy użytkownik jest zalogowany
 function checkAuth() {
@@ -15,8 +12,6 @@ function checkAuth() {
         loginBtn.style.display = 'none';
         registerBtn.style.display = 'none';
         logoutBtn.style.display = 'block';
-        mushroomForm.style.display = 'block';
-        loadMushrooms();
     }
 }
 
@@ -29,14 +24,15 @@ loginBtn.addEventListener('click', () => {
             <input type="password" id="login-password" placeholder="Hasło" required>
             <button type="submit">Zaloguj</button>
         </form>
-    `);document.getElementById('login-form').addEventListener('submit', async (e) => {
+    `);
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
 
         try {
-            const response = await fetch(`${API_URL}/login`, {  // usuń /auth
-
+            const response = await fetch(`${API_URL}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -74,11 +70,10 @@ registerBtn.addEventListener('click', () => {
         const password = document.getElementById('register-password').value;
 
         try {
-            const response = await fetch(`${API_URL}/register`, {  // usuń /auth
+            const response = await fetch(`${API_URL}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: username, email, password })  // zmień username na name
-
+                body: JSON.stringify({ name: username, email, password })
             });
 
             const data = await response.json();
@@ -93,58 +88,6 @@ registerBtn.addEventListener('click', () => {
         }
     });
 });
-
-// Dodaj grzyba
-addMushroomForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const mushroom = {
-        name: document.getElementById('mushroom-name').value,
-        species: document.getElementById('mushroom-species').value,
-        location: document.getElementById('mushroom-location').value,
-        latitude: parseFloat(document.getElementById('mushroom-lat').value),
-        longitude: parseFloat(document.getElementById('mushroom-lng').value)
-    };
-
-    try {
-        const response = await fetch(`${API_URL}/mushrooms`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(mushroom)
-        });
-
-        if (response.ok) {
-            addMushroomForm.reset();
-            loadMushrooms();
-        }
-    } catch (error) {
-        console.error('Błąd:', error);
-    }
-});
-
-// Załaduj grzyby
-async function loadMushrooms() {
-    try {
-        const response = await fetch(`${API_URL}/mushrooms`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const mushrooms = await response.json();
-
-        mushroomsContainer.innerHTML = mushrooms.map(m => `
-            <div class="mushroom-card">
-                <h3>${m.name}</h3>
-                <p>Gatunek: ${m.species || 'nieznany'}</p>
-                <p>📍 ${m.location}</p>
-                <p>📅 ${new Date(m.createdAt).toLocaleDateString('pl-PL')}</p>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Błąd:', error);
-    }
-}
 
 // Wyloguj
 logoutBtn.addEventListener('click', () => {

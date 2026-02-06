@@ -1,4 +1,5 @@
 import express from 'express';
+import authRoutes from './routes/auth.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import pkg from '@prisma/client';
@@ -15,7 +16,10 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // ← SERWOWANIE PLIKÓW STATYCZNYCH
+app.use(express.static('public'));
+
+// ROUTES
+app.use('/api/auth', authRoutes);
 
 // Middleware autoryzacji
 const authMiddleware = (req, res, next) => {
@@ -34,31 +38,6 @@ const authMiddleware = (req, res, next) => {
 // Publiczne endpointy
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', message: 'Mushroommates API is running' });
-});
-
-app.post('/api/register', async (req, res) => {
-    const { email, password, name } = req.body;
-    const hashedPassword = await hashPassword(password);
-
-    const user = await prisma.user.create({
-        data: { email, password: hashedPassword, name }
-    });
-
-    const token = generateToken(user.id);
-    res.json({ token, user: { id: user.id, email, name } });
-});
-
-app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-
-    const isValid = await verifyPassword(password, user.password);
-    if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
-
-    const token = generateToken(user.id);
-    res.json({ token, user: { id: user.id, email: user.email, name: user.name } });
 });
 
 // Chronione endpointy

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logowanie - Grzybobranie</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2d5016 0%, #1a2f0a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            color: #2d5016;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #4a7c2c;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a7c2c;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #4a7c2c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #3a6222;
+        }
+
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success {
+            background: #4caf50;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        #registerForm {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h1>🍄 Grzybobranie</h1>
+    <p class="subtitle">Witaj w aplikacji dla grzybiarzy!</p>
+
+    <div class="tabs">
+        <button class="tab active" id="loginTab">Logowanie</button>
+        <button class="tab" id="registerTab">Rejestracja</button>
+    </div>
+
+    <div id="error" class="error"></div>
+    <div id="success" class="success"></div>
+
+    <!-- Formularz logowania -->
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" required placeholder="twoj@email.pl">
+        </div>
+        <div class="form-group">
+            <label for="loginPassword">Hasło</label>
+            <input type="password" id="loginPassword" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn">Zaloguj się</button>
+    </form>
+
+    <!-- Formularz rejestracji -->
+    <form id="registerForm">
+        <div class="form-group">
+            <label for="registerName">Imię</label>
+            <input type="text" id="registerName" required placeholder="Jan Kowalski">
+        </div>
+        <div class="form-group">
+            <label for="registerEmail">Email</label>
+            <input type="email" id="registerEmail" required placeholder="twoj@email.pl">
+        </div>
+        <div class="form-group">
+            <label for="registerPassword">Hasło</label>
+            <input type="password" id="registerPassword" required placeholder="••••••••" minlength="6">
+        </div>
+        <button type="submit" class="btn">Zarejestruj się</button>
+    </form>
+</div>
+
+<script>
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const errorDiv = document.getElementById('error');
+    const successDiv = document.getElementById('success');
+
+    // Przełączanie między zakładkami
+    loginTab.addEventListener('click', () => {
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        hideMessages();
+    });
+
+    registerTab.addEventListener('click', () => {
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+        registerForm.style.display = 'block';
+        loginForm.style.display = 'none';
+        hideMessages();
+    });
+
+    function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        successDiv.style.display = 'none';
+    }
+
+    function showSuccess(message) {
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        errorDiv.style.display = 'none';
+    }
+
+    function hideMessages() {
+        errorDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+    }
+
+    // Logowanie
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideMessages();
+
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Błąd logowania');
+            }
+
+            localStorage.setItem('token', data.token);
+            window.location.href = 'index.html';
+        } catch (error) {
+            showError(error.message);
+        }
+    });
+
+    // Rejestracja
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideMessages();
+
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Błąd rejestracji');
+            }
+
+            showSuccess('Rejestracja udana! Możesz się zalogować.');
+            registerForm.reset();
+            setTimeout(() => {
+                loginTab.click();
+            }, 2000);
+        } catch (error) {
+            showError(error.message);
+        }
+    });
+
+    // Jeśli użytkownik jest już zalogowany
+    if (localStorage.getItem('token')) {
+        window.location.href = 'index.html';
+    }
+</script>
+</body>
+</html>

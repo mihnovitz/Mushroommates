@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mushroommates - Aplikacja grzybiarza</title>
+    <title>Mushroommates - Forum grzybiarzy</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -17,25 +17,26 @@
 </nav>
 
 <main>
-    <section id="mushroom-form" style="display:none;">
-        <h2>Dodaj grzyba</h2>
-        <form id="add-mushroom">
-            <input type="text" id="mushroom-name" placeholder="Nazwa" required>
-            <input type="text" id="mushroom-species" placeholder="Gatunek">
-            <input type="text" id="mushroom-location" placeholder="Lokalizacja" required>
-            <input type="number" id="mushroom-lat" placeholder="Szerokość geograficzna" step="0.000001" required>
-            <input type="number" id="mushroom-lng" placeholder="Długość geograficzna" step="0.000001" required>
-            <input type="file" id="mushroom-photo" accept="image/*">
-            <button type="submit">Dodaj</button>
-        </form>
+    <section id="quick-actions">
+        <button onclick="window.location.href='/mushrooms.html'" class="action-btn">
+            🍄 Dodaj znalezisko
+        </button>
     </section>
 
-    <section id="mushrooms-list">
-        <h2>Znalezione grzyby</h2>
-        <div id="mushrooms-container"></div>
+    <section id="forum-posts">
+        <h2>Forum grzybiarzy</h2>
+        <div id="add-post-section" style="display:none;">
+            <h3>Dodaj nowy post</h3>
+            <form id="add-post-form">
+                <input type="text" id="post-title" placeholder="Tytuł" required>
+                <textarea id="post-content" placeholder="Treść" rows="4" required></textarea>
+                <button type="submit">Dodaj post</button>
+            </form>
+        </div>
+        <div id="posts-container"></div>
     </section>
 </main>
 
-<script src="/js/app.js"></script>
+<script src="/js/index.js"></script>
 </body>
 </html>

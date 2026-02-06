@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mushroommates - Dodaj znalezisko</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav>
+    <h1>Mushroommates</h1>
+    <div id="auth-buttons">
+        <button onclick="window.location.href='/index.html'">← Powrót do forum</button>
+        <button id="logout-btn" style="display:none;">Wyloguj</button>
+    </div>
+</nav>
+
+<main>
+    <section id="mushroom-form">
+        <h2>Dodaj grzyba</h2>
+        <form id="add-mushroom">
+            <input type="text" id="mushroom-name" placeholder="Nazwa" required>
+            <input type="text" id="mushroom-species" placeholder="Gatunek">
+            <input type="text" id="mushroom-location" placeholder="Lokalizacja" required>
+            <input type="number" id="mushroom-lat" placeholder="Szerokość geograficzna" step="0.000001" required>
+            <input type="number" id="mushroom-lng" placeholder="Długość geograficzna" step="0.000001" required>
+            <input type="file" id="mushroom-photo" accept="image/*">
+            <button type="submit">Dodaj</button>
+        </form>
+    </section>
+
+    <section id="mushrooms-list">
+        <h2>Znalezione grzyby</h2>
+        <div id="mushrooms-container"></div>
+    </section>
+</main>
+
+<script src="/js/mushrooms.js"></script>
+</body>
+</html>
