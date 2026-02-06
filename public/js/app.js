@@ -47,18 +47,15 @@ const AuthManager = {
 
     updateUI() {
         const loginBtn = document.getElementById('login-btn');
-        const registerBtn = document.getElementById('register-btn');
         const logoutBtn = document.getElementById('logout-btn');
 
-        if (!loginBtn || !registerBtn || !logoutBtn) return;
+        if (!loginBtn || !logoutBtn) return;
 
         if (this.isAuthenticated) {
             loginBtn.style.display = 'none';
-            registerBtn.style.display = 'none';
             logoutBtn.style.display = 'block';
         } else {
             loginBtn.style.display = 'block';
-            registerBtn.style.display = 'block';
             logoutBtn.style.display = 'none';
         }
     }
@@ -170,26 +167,6 @@ function initializeApp() {
         });
     }
 
-    // Register button
-    const registerBtn = document.getElementById('register-btn');
-    if (registerBtn) {
-        registerBtn.addEventListener('click', () => {
-            ModalManager.create(`
-                <h2>Rejestracja</h2>
-                <form id="register-form">
-                    <input type="text" id="register-username" placeholder="Nazwa użytkownika" required minlength="2">
-                    <input type="email" id="register-email" placeholder="Email" required>
-                    <input type="password" id="register-password" placeholder="Hasło (min. 6 znaków)" required minlength="6">
-                    <button type="submit">Zarejestruj</button>
-                </form>
-            `);
-
-            const form = document.getElementById('register-form');
-            if (form) {
-                form.addEventListener('submit', FormHandlers.handleRegister);
-            }
-        });
-    }
 
     // Logout button
     const logoutBtn = document.getElementById('logout-btn');

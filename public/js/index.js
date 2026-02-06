@@ -5,9 +5,8 @@ function checkAuth() {
     const token = localStorage.getItem('token');
     if (token) {
         document.getElementById('login-btn').style.display = 'none';
-        document.getElementById('register-btn').style.display = 'none';
         document.getElementById('logout-btn').style.display = 'block';
-        document.getElementById('new-thread-btn').style.display = 'block'; // <- DODAJ TĘ LINIĘ
+        document.getElementById('new-thread-btn').style.display = 'block';
     }
 }
 
@@ -57,9 +56,6 @@ document.getElementById('login-btn')?.addEventListener('click', () => {
     window.location.href = '/login.html';
 });
 
-document.getElementById('register-btn')?.addEventListener('click', () => {
-    window.location.href = '/register.html';
-});
 
 checkAuth();
 loadPosts();

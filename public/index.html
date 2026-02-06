@@ -3,38 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mushroommates - Forum grzybiarzy</title>
+    <meta name="description" content="Mushroommates - Forum dla pasjonatów grzybiarstwa">
+    <title>Mushroommates - Forum Grzybiarzy 🍄</title>
     <link rel="stylesheet" href="/css/style.css">
-
 </head>
 <body>
-<nav>
-    <h1>Mushroommates</h1>
-    <div id="auth-buttons">
-        <button id="login-btn">Zaloguj</button>
-        <button id="register-btn">Zarejestruj</button>
-        <button id="logout-btn" style="display:none;">Wyloguj</button>
-    </div>
-</nav>
-
-<main>
-    <section id="quick-actions">
-        <button onclick="window.location.href='/mushrooms.html'" class="action-btn">
-            🍄 Dodaj znalezisko
-        </button>
-    </section>
-
-    <section id="forum-posts">
-        <div class="section-header">
-            <h2>Forum grzybiarzy</h2>
-            <button id="new-thread-btn" style="display:none;" onclick="window.location.href='/new-thread.html'">
-                ➕ Nowy wątek
-            </button>
+    <!-- Nawigacja -->
+    <nav>
+        <h1>Mushroommates</h1>
+        <div id="auth-buttons">
+            <button id="login-btn">Zaloguj się</button>
+            <button id="logout-btn" style="display:none;">Wyloguj</button>
         </div>
-        <div id="posts-container"></div>
-    </section>
-</main>
+    </nav>
 
-<script src="/js/index.js"></script>
+    <!-- Główna treść -->
+    <main>
+        <!-- Szybkie akcje -->
+        <section id="quick-actions">
+            <button onclick="window.location.href='/mushrooms.html'" class="action-btn">
+                🍄 Dodaj znalezisko grzyba
+            </button>
+        </section>
+
+        <!-- Forum -->
+        <section id="forum-posts">
+            <div class="section-header">
+                <h2>Najnowsze wątki</h2>
+                <button id="new-thread-btn" style="display:none;" onclick="window.location.href='/new-thread.html'">
+                    ➕ Nowy wątek
+                </button>
+            </div>
+            <div id="posts-container" class="slide-up"></div>
+        </section>
+    </main>
+
+    <script src="/js/index.js"></script>
 </body>
 </html>
